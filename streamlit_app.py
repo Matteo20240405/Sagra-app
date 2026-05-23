@@ -85,7 +85,7 @@ elif st.session_state.step == 3:
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(200, 10, "ISTRUZIONI:", ln=True)
     pdf.set_font("Arial", size=11)
-    pdf.multi_cell(0, 7, "Si prega di conservare questa ricevuta e di allegare la copia del bonifico/transazione PayPal effettuata. Presentare entrambi al banco cassa al momento del ritiro.")
+    pdf.multi_cell(0, 7, "Si prega di conservare questa ricevuta e di allegare la copia del bonifico/transazione PayPal effettuata. Presentare entrambi ai camerieri al momento del ritiro.")
     
     pdf_bytes = bytes(pdf.output())
     
