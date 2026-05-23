@@ -51,14 +51,17 @@ if st.button("Conferma e Scarica Ricevuta"):
         pdf.ln(10)
         pdf.cell(200, 10, f"Cliente: {nome}", ln=True)
         for piatto, qta in ordine.items():
-            # Evitiamo caratteri accentati o simboli speciali se non carichiamo font esterni
             pdf.cell(200, 10, f"- {piatto} x {qta}", ln=True)
         pdf.cell(200, 10, f"TOTALE PAGATO: {totale:.2f} EUR", ln=True)
         
+        # Generazione PDF come bytes
         pdf_bytes = pdf.output()
-      st.download_button(
+        
+        st.download_button(
             label="📥 Scarica PDF Ricevuta",
             data=pdf_bytes,
             file_name="Prenotazione.pdf",
             mime="application/pdf"
         )
+    else:
+        st.error("Inserisci il nome e seleziona almeno un piatto!")
