@@ -1,7 +1,7 @@
 import streamlit as st
 from fpdf import FPDF
 
-# Inizializzazione menù (usa session_state per renderlo persistente)
+# Inizializzazione menù
 if 'menu' not in st.session_state:
     st.session_state.menu = {"Lumache in umido": 12.0, "Lumache fritte": 10.0}
 
@@ -17,35 +17,32 @@ with st.sidebar:
         new_price = st.number_input("Prezzo", min_value=0.0)
         if st.button("Aggiorna Menù"):
             st.session_state.menu[new_dish] = new_price
-            st.rerun() # Ricarica per mostrare il nuovo piatto
+            st.rerun()
 
 # --- AREA ORDINE ---
 st.header("🍽️ Crea il tuo ordine")
 ordine = {}
 totale = 0
 
-# Visualizza e calcola
 for piatto, prezzo in st.session_state.menu.items():
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.write(f"**{piatto}** - € {prezzo:.2f}")
+        st.write(f"**{piatto}** - {prezzo:.2f} EUR")
     with col2:
-        # Usiamo un key unico per ogni piatto
-        qta = st.number_input(f"Qta", 0, 10, key=f"qta_{piatto}")
+        qta = st.number_input(f"Qta {piatto}", 0, 10, key=f"qta_{piatto}", label_visibility="collapsed")
     
     if qta > 0:
         ordine[piatto] = qta
         totale += (qta * prezzo)
 
 st.divider()
-st.metric("Totale provvisorio", f"€ {totale:.2f}")
+st.metric("Totale provvisorio", f"{totale:.2f} EUR")
 
 # --- CHECKOUT ---
-nome = st.text_input("Nome e Cognome per la prenotazione")
+nome = st.text_input("Nome e Cognome")
 
 if st.button("Conferma e Scarica Ricevuta"):
     if nome and totale > 0:
-        # Generazione PDF corretta per fpdf2
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", 'B', 16)
@@ -54,12 +51,11 @@ if st.button("Conferma e Scarica Ricevuta"):
         pdf.ln(10)
         pdf.cell(200, 10, f"Cliente: {nome}", ln=True)
         for piatto, qta in ordine.items():
+            # Evitiamo caratteri accentati o simboli speciali se non carichiamo font esterni
             pdf.cell(200, 10, f"- {piatto} x {qta}", ln=True)
-        pdf.cell(200, 10, f"TOTALE PAGATO: € {totale:.2f}", ln=True)
+        pdf.cell(200, 10, f"TOTALE PAGATO: {totale:.2f} EUR", ln=True)
         
-        # Correzione fondamentale per fpdf2
-        pdf_bytes = pdf.output() 
-        
+        pdf_bytes = pdf.output()
         st.download_button("📥 Scarica PDF Ricevuta", pdf_bytes, "Prenotazione.pdf")
     else:
         st.error("Inserisci il nome e seleziona almeno un piatto!")
