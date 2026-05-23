@@ -7,8 +7,9 @@ if 'menu' not in st.session_state: st.session_state.menu = {"Lumache in umido": 
 if 'ordine' not in st.session_state: st.session_state.ordine = {}
 
 st.title("🐌 Sagra della Lumaca")
+st.subheader("S.M.S. Fratellanza Segnese")
 
-# --- AREA ADMIN (Sidebar) ---
+# --- 1. AREA ADMIN (Sidebar) ---
 with st.sidebar:
     st.header("🔑 Area Admin")
     pwd = st.text_input("Password", type="password")
@@ -19,51 +20,68 @@ with st.sidebar:
             st.session_state.menu[new_dish] = new_price
             st.rerun()
 
-# --- STEP 1: SELEZIONE PIATTI ---
+# --- 2. STEP 1: SELEZIONE PIATTI ---
 if st.session_state.step == 1:
     st.header("1. Scegli i piatti")
-    totale = 0
+    st.session_state.ordine = {}
+    totale_tot = 0
+    
     for piatto, prezzo in st.session_state.menu.items():
         qta = st.number_input(f"{piatto} (€{prezzo:.2f})", 0, 10, key=piatto)
         if qta > 0:
-            st.session_state.ordine[piatto] = qta
-            totale += (qta * prezzo)
+            st.session_state.ordine[piatto] = {"qta": qta, "prezzo": prezzo, "parziale": qta * prezzo}
+            totale_tot += (qta * prezzo)
             
-    if totale > 0:
-        st.write(f"### Totale: € {totale:.2f}")
-        if st.button("Procedi al Pagamento"):
+    if totale_tot > 0:
+        st.write(f"### Totale: € {totale_tot:.2f}")
+        nome = st.text_input("Nome e Cognome")
+        if nome and st.button("Procedi al Pagamento"):
+            st.session_state.nome_cliente = nome
             st.session_state.step = 2
             st.rerun()
 
-# --- STEP 2: PAGAMENTO ---
+# --- 3. STEP 2: PAGAMENTO ---
 elif st.session_state.step == 2:
     st.header("2. Pagamento")
-    st.write("IBAN: IT00XXXXX | PayPal: paypal.me/sagra")
-    if st.file_uploader("Carica la ricevuta"):
-        if st.button("Conferma"):
+    st.info("Effettua il bonifico o paga con PayPal")
+    st.code("IBAN: IT00XXXXX | PayPal: paypal.me/sagra")
+    
+    if st.file_uploader("Carica la ricevuta del pagamento"):
+        if st.button("Conferma Pagamento"):
             st.session_state.step = 3
             st.rerun()
-    if st.button("Indietro"): st.session_state.step = 1; st.rerun()
+    
+    if st.button("Indietro"): 
+        st.session_state.step = 1
+        st.rerun()
 
-# --- STEP 3: DOWNLOAD ---
+# --- 4. STEP 3: DOWNLOAD RICEVUTA ---
 elif st.session_state.step == 3:
-    st.header("3. Scarica Ricevuta")
+    st.header("3. Ricevuta Prenotazione")
+    
+    # Creazione PDF
     pdf = FPDF()
     pdf.add_page()
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, "Ricevuta Sagra della Lumaca", ln=True, align='C')
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, "Ricevuta Sagra", ln=True, align='C')
-    for p, q in st.session_state.ordine.items():
-        pdf.cell(200, 10, f"{p} x {q}", ln=True)
+    pdf.ln(10)
+    pdf.cell(200, 10, f"Cliente: {st.session_state.nome_cliente}", ln=True)
+    pdf.ln(5)
     
-    # Forza la conversione in bytes e specifica il tipo file
-    pdf_bytes = bytes(pdf.output()) 
+    totale_finale = 0
+    for p, dettagli in st.session_state.ordine.items():
+        pdf.cell(200, 10, f"- {p} (x{dettagli['qta']}) -> {dettagli['parziale']:.2f} EUR", ln=True)
+        totale_finale += dettagli['parziale']
     
-    st.download_button(
-        label="📥 Scarica PDF",
-        data=pdf_bytes,
-        file_name="Prenotazione.pdf",
-        mime="application/pdf"
-    )
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(200, 10, f"TOTALE GENERALE: {totale_finale:.2f} EUR", ln=True)
+    pdf.set_font("Arial", 'I', 10)
+    pdf.cell(200, 10, "Pagamento verificato.", ln=True)
+    
+    pdf_bytes = bytes(pdf.output())
+    
+    st.download_button("📥 Scarica PDF Ricevuta", pdf_bytes, "Prenotazione.pdf", mime="application/pdf")
     
     if st.button("Nuova Prenotazione"):
         st.session_state.step = 1
