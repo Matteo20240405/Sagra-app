@@ -56,8 +56,9 @@ if st.button("Conferma e Scarica Ricevuta"):
         pdf.cell(200, 10, f"TOTALE PAGATO: {totale:.2f} EUR", ln=True)
         
         pdf_bytes = pdf.output()
-       st.download_button(
+      st.download_button(
             label="📥 Scarica PDF Ricevuta",
             data=pdf_bytes,
             file_name="Prenotazione.pdf",
-            mime="application/pdf")
+            mime="application/pdf"
+        )
