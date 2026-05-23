@@ -56,6 +56,8 @@ if st.button("Conferma e Scarica Ricevuta"):
         pdf.cell(200, 10, f"TOTALE PAGATO: {totale:.2f} EUR", ln=True)
         
         pdf_bytes = pdf.output()
-        st.download_button("📥 Scarica PDF Ricevuta", pdf_bytes, "Prenotazione.pdf")
-    else:
-        st.error("Inserisci il nome e seleziona almeno un piatto!")
+       st.download_button(
+            label="📥 Scarica PDF Ricevuta",
+            data=pdf_bytes,
+            file_name="Prenotazione.pdf",
+            mime="application/pdf")
