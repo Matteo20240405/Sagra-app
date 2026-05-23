@@ -35,29 +35,15 @@ if st.session_state.step == 1:
     if totale_tot > 0:
         st.write(f"### Totale: € {totale_tot:.2f}")
         nome = st.text_input("Nome e Cognome")
-        if nome and st.button("Procedi al Pagamento"):
+        if nome and st.button("Conferma Ordine"):
             st.session_state.nome_cliente = nome
-            st.session_state.step = 2
+            st.session_state.step = 3 # Passiamo direttamente al download
             st.rerun()
 
-# --- 3. STEP 2: PAGAMENTO ---
-elif st.session_state.step == 2:
-    st.header("2. Pagamento")
-    st.info("Effettua il bonifico o paga con PayPal")
-    st.code("IBAN: IT00XXXXX | PayPal: paypal.me/sagra")
-    
-    if st.file_uploader("Carica la ricevuta del pagamento"):
-        if st.button("Conferma Pagamento"):
-            st.session_state.step = 3
-            st.rerun()
-    
-    if st.button("Indietro"): 
-        st.session_state.step = 1
-        st.rerun()
-
-# --- 4. STEP 3: DOWNLOAD RICEVUTA ---
+# --- 3. STEP 3: DOWNLOAD RICEVUTA ---
 elif st.session_state.step == 3:
     st.header("3. Ricevuta Prenotazione")
+    st.success("Ordine registrato correttamente!")
     
     # Creazione PDF
     pdf = FPDF()
@@ -76,8 +62,13 @@ elif st.session_state.step == 3:
     
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(200, 10, f"TOTALE GENERALE: {totale_finale:.2f} EUR", ln=True)
-    pdf.set_font("Arial", 'I', 10)
-    pdf.cell(200, 10, "Pagamento verificato.", ln=True)
+    
+    # Richiesta allegato pagamento
+    pdf.ln(10)
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(200, 10, "IMPORTANTE:", ln=True)
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, "Per completare la prenotazione, si prega di effettuare il pagamento (Bonifico/PayPal) e di ALLEGARE la copia della ricevuta di pagamento quando si presenta la presente ricevuta alla cassa della Sagra.")
     
     pdf_bytes = bytes(pdf.output())
     
